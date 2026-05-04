@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # MySQL 8.0
+  profit-mysql:
+    image: mysql:8.0
+    container_name: profit-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: jeecg-boot
+      TZ: Asia/Shanghai
+    volumes:
+      - profit-mysql-data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    networks:
+      - profit-network
+
+  # Redis 6.0（使用现有的或启动新的）
+  profit-redis:
+    image: redis:6.0-alpine
+    container_name: profit-redis
+    restart: always
+    ports:
+      - "6380:6379"  # 使用 6380 避免冲突
+    command: redis-server --appendonly yes
+    volumes:
+      - profit-redis-data:/data
+    networks:
+      - profit-network
+
+  # jeecg-boot 后端
+  jeecg-boot:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: profit-jeecg-boot
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - profit-mysql
+      - profit-redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://profit-mysql:3306/jeecg-boot?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_REDIS_HOST: profit-redis
+      SPRING_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    networks:
+      - profit-network
+
+volumes:
+  profit-mysql-data:
+  profit-redis-data:
+
+networks:
+  profit-network:
+    driver: bridge

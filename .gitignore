@@ -1,0 +1,25 @@
+# 后端
+backend/jeecg-boot/
+*.class
+*.jar
+*.war
+target/
+.idea/
+*.iml
+
+# 前端
+frontend/jeecgboot-vue3/node_modules/
+frontend/jeecgboot-vue3/dist/
+.DS_Store
+
+# 数据库
+*.log
+
+# 临时文件
+*.tmp
+*.bak
+*~
+
+# 环境配置
+.env.local
+.env.*.local
