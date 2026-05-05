@@ -1,5 +1,4 @@
-# 后端
-backend/jeecg-boot/
+# 后端编译产物
 *.class
 *.jar
 *.war
