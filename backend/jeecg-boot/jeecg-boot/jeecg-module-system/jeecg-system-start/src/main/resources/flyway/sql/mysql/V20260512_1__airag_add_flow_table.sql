@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `airag_flow` (
+  `id` varchar(32) NOT NULL COMMENT '主键',
+  `create_by` varchar(50) DEFAULT NULL COMMENT '创建人',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(50) DEFAULT NULL COMMENT '更新人',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `sys_org_code` varchar(64) DEFAULT NULL COMMENT '所属部门',
+  `tenant_id` varchar(32) DEFAULT NULL COMMENT '租户id',
+  `application_name` varchar(100) DEFAULT NULL COMMENT '应用名称',
+  `name` varchar(255) DEFAULT NULL COMMENT '名称',
+  `descr` varchar(500) DEFAULT NULL COMMENT '描述',
+  `icon` varchar(255) DEFAULT NULL COMMENT '图标',
+  `chain` longtext DEFAULT NULL COMMENT 'EL表达式',
+  `design` longtext DEFAULT NULL COMMENT '设计图',
+  `status` varchar(20) DEFAULT NULL COMMENT '状态',
+  `metadata` longtext DEFAULT NULL COMMENT '元数据',
+  `trigger_cron` varchar(100) DEFAULT NULL COMMENT 'cron触发器',
+  PRIMARY KEY (`id`),
+  KEY `idx_airag_flow_application_name` (`application_name`),
+  KEY `idx_airag_flow_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AiRag流程';

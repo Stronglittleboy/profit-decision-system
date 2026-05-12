@@ -3,8 +3,11 @@
 
 set -e
 
-PROJECT_DIR="/vol3/1000/private/workProject/profit-decision-system/backend/jeecg-boot/jeecg-boot"
+#update-begin---author:Codex ---date:2026-05-12 for：【单体化】改为仓库相对路径与单体默认端口-----------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$SCRIPT_DIR/backend/jeecg-boot/jeecg-boot"
 JAR_FILE="$PROJECT_DIR/jeecg-module-system/jeecg-system-start/target/jeecg-system-start-3.9.2.jar"
+#update-end---author:Codex ---date:2026-05-12 for：【单体化】改为仓库相对路径与单体默认端口-----------
 
 echo "=========================================="
 echo "  jeecg-boot 后端启动脚本"
@@ -47,8 +50,8 @@ echo "  启动 jeecg-boot 后端..."
 echo "=========================================="
 echo ""
 echo "访问地址："
-echo "  - 后端 API：http://localhost:8081/jeecg-boot/"
-echo "  - 接口文档：http://localhost:8081/jeecg-boot/doc.html"
+echo "  - 后端 API：http://localhost:8080/jeecg-boot/"
+echo "  - 接口文档：http://localhost:8080/jeecg-boot/doc.html"
 echo "  - 代码生成器：登录后进入 系统管理 → 开发工具 → 代码生成器"
 echo ""
 echo "登录信息："
@@ -65,7 +68,7 @@ docker run --rm \
   --name jeecg-boot-app \
   --network host \
   -v "$JAR_FILE":/app/app.jar \
-  -e SERVER_PORT="8081" \
+  -e SERVER_PORT="8080" \
   -e SPRING_DATASOURCE_URL="jdbc:mysql://localhost:3306/jeecg-boot?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai" \
   -e SPRING_DATASOURCE_USERNAME="root" \
   -e SPRING_DATASOURCE_PASSWORD="***" \
