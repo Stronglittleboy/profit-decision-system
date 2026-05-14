@@ -30,6 +30,10 @@ public class FactEventDTO {
 
     private String costCategory;
 
+    private LocalDate amortizeStart;
+    private LocalDate amortizeEnd;
+    private String amortizeMethod;
+
     @Size(max = 50, message = "发票号最多 50 个字符")
     private String invoiceNo;
 

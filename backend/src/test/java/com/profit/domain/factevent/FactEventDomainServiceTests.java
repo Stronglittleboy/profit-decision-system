@@ -64,7 +64,7 @@ class FactEventDomainServiceTests {
     void validateNotAlreadyReversed_valid_noException() {
         FactEvent event = FactEvent.create(
                 FactType.INCOME, new BigDecimal("100"),
-                LocalDate.now(), null, 1L, 1L, null, null, null
+                LocalDate.now(), null, 1L, 1L, null, null, null, null, null, null
         );
         assertDoesNotThrow(() -> service.validateNotAlreadyReversed(event));
     }
@@ -73,7 +73,7 @@ class FactEventDomainServiceTests {
     void validateNotAlreadyReversed_reversed_throwsException() {
         FactEvent event = FactEvent.create(
                 FactType.INCOME, new BigDecimal("100"),
-                LocalDate.now(), null, 1L, 1L, null, null, null
+                LocalDate.now(), null, 1L, 1L, null, null, null, null, null, null
         );
         event.reverse();
         BusinessException ex = assertThrows(BusinessException.class, () -> service.validateNotAlreadyReversed(event));

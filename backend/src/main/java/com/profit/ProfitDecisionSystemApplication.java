@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-@MapperScan("com.profit.mapper")
+@MapperScan("com.profit.infrastructure")
 public class ProfitDecisionSystemApplication {
 
     public static void main(String[] args) {

@@ -15,12 +15,22 @@ export interface FactEventVO {
   counterpartyName: string
   costCategory: string | null
   costCategoryName: string | null
+  amortizeStart: string | null
+  amortizeEnd: string | null
+  amortizeMethod: string | null
+  amortizeMonths: number
   invoiceNo: string | null
   status: string
   statusName: string
   remark: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface AmortizationEntryVO {
+  id: number
+  period: string
+  amount: number
 }
 
 export interface FactEventForm {
@@ -31,6 +41,9 @@ export interface FactEventForm {
   subjectId: number | undefined
   counterpartyId: number | undefined
   costCategory: string
+  amortizeStart: string
+  amortizeEnd: string
+  amortizeMethod: string
   invoiceNo: string
   remark: string
 }
@@ -61,4 +74,8 @@ export function createFactEvent(data: FactEventForm) {
 
 export function reverseFactEvent(id: number) {
   return http.post<ApiResponse<void>>(`/fact-event/${id}/reverse`)
+}
+
+export function fetchAmortizationEntries(id: number) {
+  return http.get<ApiResponse<AmortizationEntryVO[]>>(`/fact-event/${id}/amortization`)
 }

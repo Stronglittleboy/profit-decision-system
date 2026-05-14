@@ -28,6 +28,10 @@ public class FactEventEntity {
 
     private String costCategory;
 
+    private LocalDate amortizeStart;
+    private LocalDate amortizeEnd;
+    private String amortizeMethod;
+
     private String invoiceNo;
 
     private String status;

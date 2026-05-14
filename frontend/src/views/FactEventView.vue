@@ -6,9 +6,11 @@ import {
   fetchFactEventList,
   createFactEvent,
   reverseFactEvent,
+  fetchAmortizationEntries,
   type FactEventVO,
   type FactEventForm,
   type FactEventQuery,
+  type AmortizationEntryVO,
 } from '@/api/factEvent'
 import { fetchSubjectTree, type AccountSubjectTreeNode } from '@/api/accountSubject'
 import { fetchCounterpartyList, type CounterpartyVO } from '@/api/counterparty'
@@ -108,6 +110,9 @@ const formData = reactive<FactEventForm>({
   subjectId: undefined,
   counterpartyId: undefined,
   costCategory: '',
+  amortizeStart: '',
+  amortizeEnd: '',
+  amortizeMethod: '',
   invoiceNo: '',
   remark: '',
 })
@@ -132,10 +137,30 @@ function openCreate() {
     subjectId: undefined,
     counterpartyId: undefined,
     costCategory: '',
+    amortizeStart: '',
+    amortizeEnd: '',
+    amortizeMethod: '',
     invoiceNo: '',
     remark: '',
   })
   dialogVisible.value = true
+}
+
+const amortDialogVisible = ref(false)
+const amortEntries = ref<AmortizationEntryVO[]>([])
+const amortLoading = ref(false)
+const amortRow = ref<FactEventVO | null>(null)
+
+async function openAmortDetail(row: FactEventVO) {
+  amortRow.value = row
+  amortLoading.value = true
+  amortDialogVisible.value = true
+  try {
+    const res = await fetchAmortizationEntries(row.id)
+    amortEntries.value = res.data.data ?? []
+  } finally {
+    amortLoading.value = false
+  }
 }
 
 function handleBusinessDateChange(val: string) {
@@ -269,6 +294,12 @@ onMounted(() => {
             {{ row.costCategoryName ?? '-' }}
           </template>
         </el-table-column>
+        <el-table-column label="分摊" width="90" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.amortizeMonths > 0" type="warning" size="small">{{ row.amortizeMonths }}个月</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="invoiceNo" label="发票号" width="130">
           <template #default="{ row }">
             {{ row.invoiceNo || '-' }}
@@ -279,9 +310,9 @@ onMounted(() => {
             <el-tag :type="statusTagType(row.status)" size="small">{{ row.statusName }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140" align="center" fixed="right">
+        <el-table-column label="操作" width="180" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small">查看</el-button>
+            <el-button v-if="row.amortizeMonths > 0" link type="primary" size="small" @click="openAmortDetail(row)">分摊明细</el-button>
             <el-button
               v-if="row.status === 'valid'"
               link
@@ -372,6 +403,11 @@ onMounted(() => {
             <el-option label="间接成本" value="indirect" />
           </el-select>
         </el-form-item>
+        <el-form-item v-if="formData.type === 'cost' && formData.costCategory === 'fixed'" label="跨期分摊">
+          <el-date-picker v-model="formData.amortizeStart" type="month" value-format="YYYY-MM-DD" placeholder="起始月" style="width:48%" />
+          <span style="display:inline-block;width:4%;text-align:center">—</span>
+          <el-date-picker v-model="formData.amortizeEnd" type="month" value-format="YYYY-MM-DD" placeholder="截止月" style="width:48%" />
+        </el-form-item>
         <el-form-item label="发票号" prop="invoiceNo">
           <el-input v-model="formData.invoiceNo" placeholder="可选" maxlength="50" />
         </el-form-item>
@@ -390,6 +426,16 @@ onMounted(() => {
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
       </template>
+    </el-dialog>
+
+    <!-- 分摊明细弹窗 -->
+    <el-dialog v-model="amortDialogVisible" title="分摊明细" width="500px" destroy-on-close>
+      <p v-if="amortRow">总额 ¥{{ formatMoney(amortRow.amount) }}，线性分摊 {{ amortRow.amortizeMonths }} 个月（{{ amortRow.amortizeStart?.substring(0,7) }} ~ {{ amortRow.amortizeEnd?.substring(0,7) }}）</p>
+      <el-table :data="amortEntries" v-loading="amortLoading" stripe size="small">
+        <el-table-column prop="period" label="月份" width="120" />
+        <el-table-column label="分摊金额" align="right"><template #default="{row}">¥{{ formatMoney(row.amount) }}</template></el-table-column>
+      </el-table>
+      <template #footer><el-button @click="amortDialogVisible=false">关闭</el-button></template>
     </el-dialog>
   </div>
 </template>

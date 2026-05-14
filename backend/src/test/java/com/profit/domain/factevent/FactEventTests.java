@@ -16,14 +16,15 @@ class FactEventTests {
                 FactType.INCOME, new BigDecimal("50000.00"),
                 LocalDate.of(2026, 5, 10), null,
                 1L, 1L,
-                CostCategory.FIXED, "INV001", "测试收入"
+                CostCategory.FIXED, null, null, null,
+                "INV001", "测试收入"
         );
 
         assertEquals(FactType.INCOME, event.getType());
         assertEquals(new BigDecimal("50000.00"), event.getAmount());
         assertNull(event.getCostCategory(), "收入类型应忽略成本类别");
         assertEquals(FactStatus.VALID, event.getStatus());
-        assertEquals(LocalDate.of(2026, 5, 10), event.getAccountingDate(), "会计日期默认跟随业务日期");
+        assertEquals(LocalDate.of(2026, 5, 10), event.getAccountingDate());
     }
 
     @Test
@@ -32,7 +33,8 @@ class FactEventTests {
                 FactType.COST, new BigDecimal("30000.00"),
                 LocalDate.of(2026, 5, 12), LocalDate.of(2026, 5, 15),
                 2L, 3L,
-                CostCategory.VARIABLE, null, null
+                CostCategory.VARIABLE, null, null, null,
+                null, null
         );
 
         assertEquals(FactType.COST, event.getType());
@@ -44,9 +46,8 @@ class FactEventTests {
     void reverse_valid_event_should_succeed() {
         FactEvent event = FactEvent.create(
                 FactType.COST, new BigDecimal("1000.00"),
-                LocalDate.now(), null,
-                1L, 1L,
-                null, null, null
+                LocalDate.now(), null, 1L, 1L,
+                null, null, null, null, null, null
         );
 
         assertFalse(event.isReversed());
@@ -59,9 +60,8 @@ class FactEventTests {
     void reverse_already_reversed_should_throw() {
         FactEvent event = FactEvent.create(
                 FactType.INCOME, new BigDecimal("1000.00"),
-                LocalDate.now(), null,
-                1L, 1L,
-                null, null, null
+                LocalDate.now(), null, 1L, 1L,
+                null, null, null, null, null, null
         );
         event.reverse();
 
@@ -75,7 +75,9 @@ class FactEventTests {
                 99L, FactType.COST, new BigDecimal("12000.00"),
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 15),
                 5L, 8L,
-                CostCategory.FIXED, "TAX-001",
+                CostCategory.FIXED,
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 1), "linear",
+                "TAX-001",
                 FactStatus.VALID, "年度保险费",
                 null, null
         );
@@ -83,5 +85,33 @@ class FactEventTests {
         assertEquals(99L, event.getId());
         assertEquals(CostCategory.FIXED, event.getCostCategory());
         assertEquals("TAX-001", event.getInvoiceNo());
+        assertTrue(event.isAmortizable());
+        assertEquals(12, event.getAmortizeMonths());
+    }
+
+    @Test
+    void amortizable_with_12_months() {
+        FactEvent event = FactEvent.create(
+                FactType.COST, new BigDecimal("12000.00"),
+                LocalDate.of(2026, 1, 1), null, 1L, 1L,
+                CostCategory.FIXED,
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 1), "linear",
+                null, "年度保险"
+        );
+
+        assertTrue(event.isAmortizable());
+        assertEquals(12, event.getAmortizeMonths());
+    }
+
+    @Test
+    void not_amortizable_without_dates() {
+        FactEvent event = FactEvent.create(
+                FactType.COST, new BigDecimal("5000.00"),
+                LocalDate.now(), null, 1L, 1L,
+                CostCategory.VARIABLE, null, null, null, null, null
+        );
+
+        assertFalse(event.isAmortizable());
+        assertEquals(0, event.getAmortizeMonths());
     }
 }

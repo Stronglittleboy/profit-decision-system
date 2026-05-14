@@ -2,13 +2,14 @@ package com.profit.controller;
 
 import com.profit.application.ReceivableAppService;
 import com.profit.common.api.ApiResponse;
+import com.profit.dto.PaymentRecordDTO;
 import com.profit.dto.ReceivableDTO;
+import com.profit.vo.PaymentRecordVO;
 import com.profit.vo.ReceivableVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -36,15 +37,26 @@ public class ReceivableController {
     }
 
     @PostMapping("/{id}/payment")
-    public ApiResponse<Void> recordPayment(@PathVariable Long id, @RequestBody Map<String, BigDecimal> body) {
-        appService.recordPayment(id, body.get("amount"));
+    public ApiResponse<Void> recordPayment(@PathVariable Long id, @Valid @RequestBody PaymentRecordDTO dto) {
+        appService.recordPayment(id, dto);
         return ApiResponse.ok("登记成功", null);
+    }
+
+    @GetMapping("/{id}/payments")
+    public ApiResponse<List<PaymentRecordVO>> paymentRecords(@PathVariable Long id) {
+        return ApiResponse.ok(appService.getPaymentRecords(id));
     }
 
     @PostMapping("/{id}/overdue")
     public ApiResponse<Void> markOverdue(@PathVariable Long id) {
         appService.markOverdue(id);
         return ApiResponse.ok("已标记逾期", null);
+    }
+
+    @PostMapping("/batch-overdue")
+    public ApiResponse<Map<String, Integer>> batchOverdue() {
+        int count = appService.batchMarkOverdue();
+        return ApiResponse.ok("批量逾期完成", Map.of("affected", count));
     }
 
     @DeleteMapping("/{id}")

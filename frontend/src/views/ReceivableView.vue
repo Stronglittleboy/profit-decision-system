@@ -2,7 +2,12 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, RefreshRight } from '@element-plus/icons-vue'
-import { fetchReceivableList, createReceivable, recordReceivablePayment, markReceivableOverdue, deleteReceivable, type ReceivableVO, type ReceivableForm } from '@/api/receivable'
+import {
+  fetchReceivableList, createReceivable, recordReceivablePayment,
+  fetchReceivablePayments, markReceivableOverdue, batchReceivableOverdue,
+  deleteReceivable,
+  type ReceivableVO, type ReceivableForm, type PaymentRecordForm, type PaymentRecordVO
+} from '@/api/receivable'
 import { fetchCounterpartyList, type CounterpartyVO } from '@/api/counterparty'
 import { fetchContractList, type ContractVO } from '@/api/contract'
 
@@ -57,14 +62,30 @@ async function handleSubmit() {
 
 const payDialogVisible = ref(false)
 const payingRow = ref<ReceivableVO | null>(null)
-const payAmount = ref<number | undefined>(undefined)
+const payForm = reactive<PaymentRecordForm>({ amount: undefined, payDate: '', remark: '' })
 
-function openPay(row: ReceivableVO) { payingRow.value = row; payAmount.value = undefined; payDialogVisible.value = true }
+function openPay(row: ReceivableVO) {
+  payingRow.value = row
+  Object.assign(payForm, { amount: undefined, payDate: new Date().toISOString().slice(0, 10), remark: '' })
+  payDialogVisible.value = true
+}
 
 async function handlePay() {
-  if (!payAmount.value || payAmount.value <= 0) { ElMessage.warning('请输入有效金额'); return }
-  await recordReceivablePayment(payingRow.value!.id, payAmount.value)
+  if (!payForm.amount || payForm.amount <= 0) { ElMessage.warning('请输入有效金额'); return }
+  if (!payForm.payDate) { ElMessage.warning('请选择日期'); return }
+  await recordReceivablePayment(payingRow.value!.id, payForm)
   ElMessage.success('登记成功'); payDialogVisible.value = false; await loadList()
+}
+
+const historyDialogVisible = ref(false)
+const historyRow = ref<ReceivableVO | null>(null)
+const historyRecords = ref<PaymentRecordVO[]>([])
+const historyLoading = ref(false)
+
+async function openHistory(row: ReceivableVO) {
+  historyRow.value = row; historyLoading.value = true; historyDialogVisible.value = true
+  try { historyRecords.value = (await fetchReceivablePayments(row.id)).data.data ?? [] }
+  finally { historyLoading.value = false }
 }
 
 async function handleOverdue(row: ReceivableVO) {
@@ -72,11 +93,18 @@ async function handleOverdue(row: ReceivableVO) {
   await markReceivableOverdue(row.id); ElMessage.success('已标记逾期'); await loadList()
 }
 
+async function handleBatchOverdue() {
+  await ElMessageBox.confirm('将所有已过到期日但未结清的应收标记为逾期？', '批量逾期', { type: 'warning' })
+  const res = await batchReceivableOverdue()
+  ElMessage.success(`完成，共标记 ${res.data.data?.affected ?? 0} 笔`); await loadList()
+}
+
 async function handleDelete(row: ReceivableVO) {
   await ElMessageBox.confirm(`确认删除「${row.code}」？`, '删除确认', { type: 'warning' })
   await deleteReceivable(row.id); ElMessage.success('删除成功'); await loadList()
 }
 
+function agingTag(days: number) { return days > 90 ? 'danger' : days > 30 ? 'warning' : '' }
 function statusTag(s: string) { return s === 'paid' ? 'success' : s === 'overdue' ? 'danger' : s === 'partial' ? '' : 'warning' }
 function fmt(v: number) { return v?.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '0.00' }
 
@@ -87,7 +115,10 @@ onMounted(() => { loadOptions(); loadList() })
   <div class="page">
     <div class="page-header">
       <div><h2>应收账款</h2><p class="sub">管理客户欠款 — 登记回款、跟踪逾期</p></div>
-      <el-button type="primary" :icon="Plus" @click="openCreate">新增应收</el-button>
+      <div style="display:flex;gap:10px">
+        <el-button @click="handleBatchOverdue">批量标记逾期</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreate">新增应收</el-button>
+      </div>
     </div>
     <el-card shadow="never" class="filter-card">
       <el-form :inline="true">
@@ -116,9 +147,11 @@ onMounted(() => { loadOptions(); loadList() })
         <el-table-column label="已收" width="130" align="right"><template #default="{row}"><span style="color:#67c23a">¥{{ fmt(row.paidAmount) }}</span></template></el-table-column>
         <el-table-column label="待收" width="130" align="right"><template #default="{row}"><span style="color:#e6a23c">¥{{ fmt(row.remaining) }}</span></template></el-table-column>
         <el-table-column prop="dueDate" label="到期日" width="110" />
+        <el-table-column label="账龄" width="80" align="center"><template #default="{row}"><el-tag :type="agingTag(row.agingDays)" size="small">{{ row.agingDays }}天</el-tag></template></el-table-column>
         <el-table-column label="状态" width="80" align="center"><template #default="{row}"><el-tag :type="statusTag(row.status)" size="small">{{ row.statusName }}</el-tag></template></el-table-column>
-        <el-table-column label="操作" width="200" align="center" fixed="right">
+        <el-table-column label="操作" width="260" align="center" fixed="right">
           <template #default="{row}">
+            <el-button link type="primary" size="small" @click="openHistory(row)">流水</el-button>
             <el-button v-if="row.status!=='paid'" link type="primary" size="small" @click="openPay(row)">登记回款</el-button>
             <el-button v-if="row.status!=='paid'&&row.status!=='overdue'" link type="warning" size="small" @click="handleOverdue(row)">标记逾期</el-button>
             <el-button v-if="row.status!=='paid'" link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
@@ -126,6 +159,7 @@ onMounted(() => { loadOptions(); loadList() })
         </el-table-column>
       </el-table>
     </el-card>
+
     <el-dialog v-model="dialogVisible" title="新增应收" width="500px" destroy-on-close>
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="90px">
         <el-form-item label="单据编号" prop="code"><el-input v-model="formData.code" maxlength="50" /></el-form-item>
@@ -137,10 +171,25 @@ onMounted(() => { loadOptions(); loadList() })
       </el-form>
       <template #footer><el-button @click="dialogVisible=false">取消</el-button><el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button></template>
     </el-dialog>
-    <el-dialog v-model="payDialogVisible" title="登记回款" width="400px" destroy-on-close>
+
+    <el-dialog v-model="payDialogVisible" title="登记回款" width="420px" destroy-on-close>
       <p>单据：{{ payingRow?.code }}，待收余额：¥{{ fmt(payingRow?.remaining ?? 0) }}</p>
-      <el-input-number v-model="payAmount" :min="0.01" :max="payingRow?.remaining" :precision="2" :controls="false" style="width:100%" placeholder="本次回款金额" />
+      <el-form label-width="80px">
+        <el-form-item label="回款金额"><el-input-number v-model="payForm.amount" :min="0.01" :max="payingRow?.remaining" :precision="2" :controls="false" style="width:100%" placeholder="本次回款金额" /></el-form-item>
+        <el-form-item label="收款日期"><el-date-picker v-model="payForm.payDate" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
+        <el-form-item label="备注"><el-input v-model="payForm.remark" maxlength="500" /></el-form-item>
+      </el-form>
       <template #footer><el-button @click="payDialogVisible=false">取消</el-button><el-button type="primary" @click="handlePay">确认</el-button></template>
+    </el-dialog>
+
+    <el-dialog v-model="historyDialogVisible" title="收款流水" width="500px" destroy-on-close>
+      <p>单据：{{ historyRow?.code }}</p>
+      <el-table :data="historyRecords" v-loading="historyLoading" stripe size="small">
+        <el-table-column prop="payDate" label="日期" width="120" />
+        <el-table-column label="金额" align="right"><template #default="{row}">¥{{ fmt(row.amount) }}</template></el-table-column>
+        <el-table-column prop="remark" label="备注"><template #default="{row}">{{ row.remark || '-' }}</template></el-table-column>
+      </el-table>
+      <template #footer><el-button @click="historyDialogVisible=false">关闭</el-button></template>
     </el-dialog>
   </div>
 </template>

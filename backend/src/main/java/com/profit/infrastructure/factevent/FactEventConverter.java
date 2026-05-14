@@ -16,6 +16,9 @@ public class FactEventConverter {
                 e.getSubjectId(),
                 e.getCounterpartyId(),
                 CostCategory.fromCode(e.getCostCategory()),
+                e.getAmortizeStart(),
+                e.getAmortizeEnd(),
+                e.getAmortizeMethod(),
                 e.getInvoiceNo(),
                 FactStatus.fromCode(e.getStatus()),
                 e.getRemark(),
@@ -34,6 +37,9 @@ public class FactEventConverter {
         e.setSubjectId(d.getSubjectId());
         e.setCounterpartyId(d.getCounterpartyId());
         e.setCostCategory(d.getCostCategory() != null ? d.getCostCategory().getCode() : null);
+        e.setAmortizeStart(d.getAmortizeStart());
+        e.setAmortizeEnd(d.getAmortizeEnd());
+        e.setAmortizeMethod(d.getAmortizeMethod());
         e.setInvoiceNo(d.getInvoiceNo());
         e.setStatus(d.getStatus().getCode());
         e.setRemark(d.getRemark());

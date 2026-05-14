@@ -3,6 +3,7 @@ package com.profit.controller;
 import com.profit.application.FactEventAppService;
 import com.profit.common.api.ApiResponse;
 import com.profit.dto.FactEventDTO;
+import com.profit.vo.AmortizationEntryVO;
 import com.profit.vo.FactEventVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +43,10 @@ public class FactEventController {
     public ApiResponse<Void> reverse(@PathVariable Long id) {
         appService.reverse(id);
         return ApiResponse.ok("冲正成功", null);
+    }
+
+    @GetMapping("/{id}/amortization")
+    public ApiResponse<List<AmortizationEntryVO>> amortization(@PathVariable Long id) {
+        return ApiResponse.ok(appService.getAmortizationEntries(id));
     }
 }

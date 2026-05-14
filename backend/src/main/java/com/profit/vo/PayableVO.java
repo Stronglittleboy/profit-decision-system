@@ -21,6 +21,7 @@ public class PayableVO {
     private String status;
     private String statusName;
     private String remark;
+    private long agingDays;
     private LocalDateTime createdAt;
 
     public static PayableVO from(Payable p) {

@@ -21,6 +21,7 @@ public class ReceivableVO {
     private String status;
     private String statusName;
     private String remark;
+    private long agingDays;
     private LocalDateTime createdAt;
 
     public static ReceivableVO from(Receivable r) {

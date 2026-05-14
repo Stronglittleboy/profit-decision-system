@@ -23,6 +23,10 @@ public class FactEventVO {
     private String counterpartyName;
     private String costCategory;
     private String costCategoryName;
+    private LocalDate amortizeStart;
+    private LocalDate amortizeEnd;
+    private String amortizeMethod;
+    private int amortizeMonths;
     private String invoiceNo;
     private String status;
     private String statusName;
@@ -42,6 +46,10 @@ public class FactEventVO {
         vo.setCounterpartyId(e.getCounterpartyId());
         vo.setCostCategory(e.getCostCategory() != null ? e.getCostCategory().getCode() : null);
         vo.setCostCategoryName(e.getCostCategory() != null ? e.getCostCategory().getLabel() : null);
+        vo.setAmortizeStart(e.getAmortizeStart());
+        vo.setAmortizeEnd(e.getAmortizeEnd());
+        vo.setAmortizeMethod(e.getAmortizeMethod());
+        vo.setAmortizeMonths(e.getAmortizeMonths());
         vo.setInvoiceNo(e.getInvoiceNo());
         vo.setStatus(e.getStatus().getCode());
         vo.setStatusName(e.getStatus().getLabel());
