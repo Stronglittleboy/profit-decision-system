@@ -1,3 +1,5 @@
+[归档说明] 本文件为历史记录，保留旧的 jeecg / Ant Design Vue / Java 17 方案描述。当前主线已切换为 Spring Boot + JDK 21 + Maven + MyBatis-Plus + Lombok + Hutool，前端为 Vue 3 + Vue Router + Element Plus。
+
 # 飞牛经营系统 - 项目总结报告
 
 ## 📊 项目概览

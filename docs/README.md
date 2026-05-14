@@ -1,166 +1,53 @@
 # 飞牛经营系统 - 文档索引
 
-**项目名称：** 飞牛经营系统（利润决策系统）  
-**当前版本：** v4.0  
-**最后更新：** 2026-05-04  
-**文档状态：** ✅ 已审查
+## 核心文档（当前主线）
 
----
-
-## 📚 文档导航
-
-### 🎯 快速开始（必读）
-
-| 文档 | 说明 | 状态 |
+| 文档 | 用途 | 状态 |
 |------|------|------|
-| [README.md](../README.md) | 项目快速启动指南 | ✅ 最新 |
-| [tech-implementation-summary.md](./tech-implementation-summary.md) | 技术落地方案总结 | ✅ v4.0 |
-| [review-summary-v4.md](./review-summary-v4.md) | 三轮评审总结 | ✅ v4.0 |
-| [development-task-board.md](./development-task-board.md) | 开发任务看板 | ⏳ 待更新 |
+| [项目总览](../README.md) | 业务背景、系统全景、模块说明、快速开始 | ✅ |
+| [当前技术方案](./current-tech-plan.md) | 技术选型、分层架构、API 规范、实施路线 | ✅ |
+| [活跃待办板](./todo-writer.md) | 当前开发任务、优先级与进度跟踪 | ✅ 持续更新 |
+| [后端架构](../backend/ARCHITECTURE.md) | 后端分层结构、依赖与启动方式 | ✅ |
+| [开发规范](./development-standards.md) | 编码约定、命名规范、开发流程 | ✅ |
 
----
+## 领域设计
 
-## 📋 文档分类
+| 文档 | 用途 | 状态 |
+|------|------|------|
+| [DDD 领域模型](./domain-model.md) | 全域领域划分（Fact/Attribution/Metrics/Decision） | ✅ |
+| [会计科目领域设计](./account-subject-domain-design.md) | account_subject UML类图/时序图/状态图/领域规则 | ✅ |
+| [会计科目页面 DSL](./account-subject-page-dsl.md) | account_subject 页面结构/细粒度状态机/数据流 | ✅ |
+| [往来方领域设计](./counterparty-domain-design.md) | counterparty UML类图/领域规则/DDL | ✅ |
+| [往来方页面 DSL](./counterparty-page-dsl.md) | counterparty 页面结构/字段/交互规则 | ✅ |
+| [收支事实领域设计](./fact-event-domain-design.md) | fact_event UML类图/领域规则/DDL | ✅ |
+| [收支事实页面 DSL](./fact-event-page-dsl.md) | fact_event 页面结构/汇总卡片/冲正交互 | ✅ |
+| [项目管理领域设计](./project-domain-design.md) | project UML类图/状态机/领域规则/DDL | ✅ |
+| [项目管理页面 DSL](./project-page-dsl.md) | project 页面结构/状态流转/交互规则 | ✅ |
+| [合同管理领域设计](./contract-domain-design.md) | contract UML类图/状态机/领域规则/DDL | ✅ |
+| [合同管理页面 DSL](./contract-page-dsl.md) | contract 页面结构/状态流转/交互规则 | ✅ |
+| [应收/应付领域设计](./receivable-payable-domain-design.md) | receivable/payable 对称模型/领域规则/DDL | ✅ |
+| [应收/应付页面 DSL](./receivable-payable-page-dsl.md) | receivable/payable 页面结构/回款/逾期交互 | ✅ |
 
-### 1. 评审文档（12个）
+## 需求与产品
 
-**最新版本（v4.0）：**
-- ✅ [review-summary-v4.md](./review-summary-v4.md) - 三轮评审总结
-- ✅ [four-party-review-meeting-v4.md](./four-party-review-meeting-v4.md) - 四方评审会议
-- ✅ [tech-team-review-meeting-v4.md](./tech-team-review-meeting-v4.md) - 技术团队评审
-- ✅ [three-party-review-meeting.md](./three-party-review-meeting.md) - 三方评审会议
+| 文档 | 用途 | 状态 |
+|------|------|------|
+| [需求文档](./requirements.md) | 完整业务需求、场景用例、验收标准 | ✅ |
+| [产品设计](./product-design.md) | 产品定位、Goal/Status/Action 模型 | ✅ |
 
-**历史版本（参考）：**
-- 📦 [review-meeting-final.md](./review-meeting-final.md) - v3.0 最终评审
-- 📦 [review-meeting-round4.md](./review-meeting-round4.md) - v3.0 第四轮评审
-- 📦 [review-report.md](./review-report.md) - v3.0 评审报告
+## 参考资料
 
-**技术选型会议：**
-- 📦 [tech-stack-reselection-meeting.md](./tech-stack-reselection-meeting.md)
-- 📦 [frontend-stack-selection-meeting.md](./frontend-stack-selection-meeting.md)
-- 📦 [tech-implementation-meeting.md](./tech-implementation-meeting.md)
+| 文档 | 用途 | 状态 |
+|------|------|------|
+| [数据库设计](./database-design.md) | 业务表结构与关系（7 张已落地表） | ✅ |
+| [接口文档模板](./api-documentation.md) | API 编写通用模板 | ✅ |
+| [前端页面清单](./frontend-pages-list.md) | 归档，以代码路由为准 | 📦 归档 |
+| [项目总结报告](./project-summary-report.md) | 历史记录（jeecg 阶段） | 📦 归档 |
+| [工作流程规范](./workflow-standards.md) | 历史记录 | 📦 归档 |
+| [后端启动说明](./backend-startup-options.md) | Maven 启动与打包方式 | ✅ |
 
-**产品会议：**
-- 📦 [product-architecture-meeting.md](./product-architecture-meeting.md)
-- 📦 [product-architecture-boss-meeting.md](./product-architecture-boss-meeting.md)
+## 说明
 
----
-
-### 2. 设计文档（8个）
-
-**核心设计（v4.0）：**
-- ✅ [domain-model-v3.md](./domain-model-v3.md) - DDD 领域模型（终审版）
-- ✅ [database-vs-model-audit.md](./database-vs-model-audit.md) - 数据库审查报告
-- ✅ [product-design.md](./product-design.md) - 产品设计
-- ✅ [requirements.md](./requirements.md) - 需求文档
-
-**数据库设计：**
-- ⏳ [database-design.md](./database-design.md) - 数据库设计（待更新为 v4.0）
-- 📦 [database/schema-v3-final.sql](../database/schema-v3-final.sql) - v3.0 表结构
-- ✅ [database/schema-v4-reviewed.sql](../database/schema-v4-reviewed.sql) - v4.0 表结构
-
-**API 设计：**
-- 📦 [api-design.md](./api-design.md) - API 设计 v1.0
-- 📦 [api-design-v3.md](./api-design-v3.md) - API 设计 v3.0
-- ⏳ [api-documentation.md](./api-documentation.md) - API 文档（待更新）
-
-**历史版本：**
-- 📦 [domain-model.md](./domain-model.md) - 领域模型 v1.0
-
----
-
-### 3. 开发文档（7个）
-
-**开发指南（v4.0）：**
-- ✅ [tech-implementation-summary.md](./tech-implementation-summary.md) - 技术落地方案总结
-- ✅ [tech-implementation-plan-v4.md](./tech-implementation-plan-v4.md) - 技术落地详细方案
-- ⏳ [development-task-board.md](./development-task-board.md) - 开发任务看板（待更新）
-- ✅ [development-standards.md](./development-standards.md) - 开发规范
-- ✅ [workflow-standards.md](./workflow-standards.md) - 工作流程规范
-
-**临时任务：**
-- 📦 [temp-task-2k-pc-real-research.md](./temp-task-2k-pc-real-research.md)
-- 📦 [temp-task-2k-pc-solution.md](./temp-task-2k-pc-solution.md)
-
----
-
-### 4. 进度报告（15个）
-
-**最新报告：**
-- ✅ [day5-success-report.md](./day5-success-report.md) - Day 5 成功报告
-- ✅ [project-summary-report.md](./project-summary-report.md) - 项目总结
-
-**历史报告：**
-- 📦 Day 1-3 报告（已归档）
-- 📦 Day 5 进度报告（已归档）
-
----
-
-### 5. 过时文档（8个）
-
-**已废弃（仅供参考）：**
-- 📦 [code-generator-guide.md](./code-generator-guide.md) - 代码生成器指南（已废弃，改用手写代码）
-- 📦 [code-generator-quickstart.md](./code-generator-quickstart.md) - 代码生成器快速入门（已废弃）
-- 📦 [backend-startup-options.md](./backend-startup-options.md) - 后端启动方案（已过时）
-- 📦 [final-tech-stack-decision.md](./final-tech-stack-decision.md) - 技术栈决策（已过时）
-- 📦 [frontend-pages-list.md](./frontend-pages-list.md) - 前端页面清单（已过时）
-- 📦 [frontend-prototype.md](./frontend-prototype.md) - 前端原型（已过时）
-- 📦 [organization-structure.md](./organization-structure.md) - 组织架构（已过时）
-
----
-
-## 🎯 当前状态（v4.0）
-
-### 评审状态
-
-| 评审轮次 | 参与角色 | 评分 | 状态 |
-|---------|---------|------|------|
-| 第一轮 | 业务、会计、产品 | 87.07/100 | ✅ 通过 |
-| 第二轮 | 业务、会计、产品、DDD架构师 | 95.35/100 | ✅ 优秀 |
-| 第三轮 | 技术团队全员 | 88.25/100 | ✅ 通过 |
-| **综合评分** | - | **90.22/100** | ✅ 批准实施 |
-
-### 数据库状态
-
-- ✅ v4.0 表结构设计完成（19张表，209个字段）
-- ⏳ 数据库表待创建
-- ✅ 初始化数据准备完成
-
-### 开发状态
-
-- ⏳ 待开始（预计 5 个工作日）
-- ✅ 技术方案已确定
-- ✅ 任务已拆分
-- ✅ 团队已就绪
-
----
-
-## 📝 文档更新记录
-
-| 日期 | 版本 | 更新内容 |
-|------|------|----------|
-| 2026-05-04 | v4.0 | 三轮评审完成，技术方案确定 |
-| 2026-05-02 | v3.0 | 初始设计完成 |
-| 2026-05-01 | v1.0 | 项目启动 |
-
----
-
-## 🔍 文档图例
-
-- ✅ 最新版本，可直接使用
-- ⏳ 待更新
-- 📦 历史版本或已废弃，仅供参考
-- ❌ 已删除
-
----
-
-## 📞 联系方式
-
-**技术负责人：** 旺仔助手  
-**项目状态：** 开发准备阶段  
-**下一步：** 更新数据库，开始开发
-
----
-
-**最后更新：** 2026-05-04 21:45  
-**文档维护：** 旺仔助手
+- 技术栈：`Spring Boot 3.x + JDK 21 + Maven + MyBatis-Plus`，前端 `Vue 3 + Vue Router + Element Plus`
+- `docs/todo-writer.md` 是当前唯一活跃任务板
+- 标记为 📦 归档 的文档仅供历史参考，不作为当前开发依据

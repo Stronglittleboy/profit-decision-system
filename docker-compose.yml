@@ -8,7 +8,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: jeecg-boot
+      MYSQL_DATABASE: profit_system
       TZ: Asia/Shanghai
     volumes:
       - profit-mysql-data:/var/lib/mysql
@@ -32,7 +32,7 @@ services:
     networks:
       - profit-network
 
-  # 后端本地启动，勿在此编排镜像；见 backend/jeecg-boot/jeecg-boot 与 application-dev.yml
+  # 后端采用本地 Spring Boot 方式启动，不在这里编排应用镜像
 
 volumes:
   profit-mysql-data:

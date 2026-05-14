@@ -1,0 +1,75 @@
+Day 1 上午 DBA任务 - 快速执行指南
+=====================================
+
+执行步骤（3分钟完成）
+---------------------
+
+1. 启动MySQL容器
+   cd /home/hlw/work/code/profit-decision-system
+   docker compose up -d profit-mysql
+   
+   等待30秒让MySQL完全启动
+
+2. 安装MySQL客户端（如果未安装）
+   sudo apt-get install mysql-client
+
+3. 执行DBA任务
+   cd /home/hlw/work/code/profit-decision-system/database
+   ./day1-dba-tasks.sh
+
+4. 验证执行结果
+   ./verify-dba-tasks.sh
+
+预期结果
+--------
+✓ 19张表创建成功
+✓ 初始化数据导入完成
+✓ 性能索引创建完成
+✓ 数据库备份已保存
+
+关键表列表
+----------
+1. fact_event - 事实事件表（核心）
+2. account_subject - 会计科目表
+3. voucher - 记账凭证表
+4. voucher_entry - 凭证分录表
+5. attribution_rule - 归因规则表
+6. attribution_result - 归因结果表
+7. org_unit - 组织单元表
+8. user - 用户表
+9. counterparty - 客户供应商表
+10. receivable - 应收应付表
+11. cash_flow - 现金流表
+12. profit_snapshot - 利润快照表
+13. goal - 目标表
+14. period_closing - 期间结账表
+15. audit_log - 审计日志表
+16. attachment - 附件表
+17. notification - 通知表
+18. sys_dict - 系统字典表
+19. sys_dict_item - 字典项表
+
+故障排查
+--------
+问题：无法连接数据库
+解决：docker compose logs profit-mysql
+     检查容器是否正常运行
+
+问题：权限不足
+解决：sudo usermod -aG docker $USER
+     重新登录
+
+问题：表已存在
+解决：先备份，然后删除旧表重新创建
+
+文件说明
+--------
+day1-dba-tasks.sh - 自动化执行脚本
+verify-dba-tasks.sh - 验证脚本
+schema-v4-reviewed.sql - 表结构定义
+init-data.sql - 初始化数据
+dict-data.sql - 字典数据
+create-indexes.sql - 索引创建脚本
+DAY1-DBA-TASKS-README.md - 详细文档
+
+详细文档请查看：DAY1-DBA-TASKS-README.md

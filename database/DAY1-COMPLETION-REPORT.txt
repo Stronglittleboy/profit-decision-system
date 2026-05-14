@@ -1,0 +1,256 @@
+[归档说明] 本文件为历史记录，保留旧的 jeecg / Ant Design Vue / Java 17 方案描述。当前主线已切换为 Spring Boot + JDK 21 + Maven + MyBatis-Plus + Lombok + Hutool，前端为 Vue 3 + Vue Router + Element Plus。
+
+=====================================
+Day 1 上午 DBA任务完成报告
+=====================================
+
+任务状态：已准备就绪
+执行时间：2026-05-05
+DBA：Claude (Hermes Agent)
+
+一、任务清单
+=====================================
+
+✓ 1. 创建备份脚本
+✓ 2. 创建数据库表结构脚本（19张表）
+✓ 3. 创建初始化数据导入脚本
+✓ 4. 创建性能优化索引脚本
+✓ 5. 创建自动化执行脚本
+✓ 6. 创建验证脚本
+✓ 7. 创建连接测试脚本
+✓ 8. 创建完整文档
+
+二、已创建的文件
+=====================================
+
+脚本文件：
+- day1-dba-tasks.sh          自动化执行脚本（主脚本）
+- verify-dba-tasks.sh        验证脚本
+- test-connection.sh         连接测试脚本
+- create-indexes.sql         索引创建SQL
+
+数据文件：
+- schema-v4-reviewed.sql     表结构定义（19张表）
+- init-data.sql              初始化数据
+- dict-data.sql              字典数据
+
+文档文件：
+- DAY1-DBA-TASKS-README.md   详细执行文档
+- QUICKSTART.txt             快速启动指南
+- DAY1-COMPLETION-REPORT.txt 本报告
+
+三、数据库表结构（19张表）
+=====================================
+
+核心业务表：
+1. fact_event          事实事件表（核心）
+2. account_subject     会计科目表
+3. voucher             记账凭证表
+4. voucher_entry       凭证分录表
+
+归因相关表：
+5. attribution_rule    归因规则表
+6. attribution_result  归因结果表
+
+组织和用户表：
+7. org_unit            组织单元表
+8. user                用户表
+
+业务关联表：
+9. counterparty        客户供应商表
+10. receivable         应收应付表
+11. cash_flow          现金流表
+
+报表和目标表：
+12. profit_snapshot    利润快照表
+13. goal               目标表
+14. period_closing     期间结账表
+
+系统支持表：
+15. audit_log          审计日志表
+16. attachment         附件表
+17. notification       通知表
+18. sys_dict           系统字典表
+19. sys_dict_item      字典项表
+
+四、索引优化策略
+=====================================
+
+fact_event表索引（10+个）：
+- idx_fact_event_profit_calc      利润计算复合索引
+- idx_fact_event_cash_flow        现金流分析索引
+- idx_fact_event_amortization     分摊计算索引
+- idx_fact_event_business_date    业务日期索引
+- idx_fact_event_invoice          发票管理索引
+- 以及schema中定义的基础索引
+
+voucher表索引（5+个）：
+- idx_voucher_period_status       期间状态复合索引
+- idx_voucher_created             审计索引
+- idx_voucher_date                凭证日期索引
+- 以及schema中定义的基础索引
+
+audit_log表索引（4+个）：
+- idx_audit_log_entity            实体查询索引
+- idx_audit_log_time              时间范围索引
+- idx_audit_log_user              用户追踪索引
+- idx_audit_log_ip                IP追踪索引
+
+其他表索引：
+- attribution_result、receivable、profit_snapshot等
+  共计60+个索引，覆盖所有高频查询场景
+
+五、初始化数据
+=====================================
+
+组织数据（6条）：
+- 公司总部
+- 销售部、研发部
+- 阿米巴A组、阿米巴B组
+- 项目X
+
+用户数据（2条）：
+- admin（管理员）
+- manager（经理）
+
+会计科目数据：
+- 包含在schema-v4-reviewed.sql中
+- 涵盖资产、负债、权益、收入、费用五大类
+
+归因规则（2条）：
+- 收入直接归因规则
+- 成本分摊规则
+
+目标数据（2条）：
+- 公司总部2026-05月度目标
+- 销售部2026-05月度目标
+
+字典数据：
+- 客户供应商类型
+- 收支类型
+- 收支状态
+- 应收应付状态
+- 期间结账状态
+- 会计科目类型
+- 等等
+
+六、执行步骤（用户需执行）
+=====================================
+
+由于环境限制（Docker权限、MySQL客户端未安装），
+脚本已准备就绪，用户需要执行以下步骤：
+
+步骤1：启动MySQL容器
+--------------------
+cd /home/hlw/work/code/profit-decision-system
+docker compose up -d profit-mysql
+
+# 等待30秒让MySQL完全启动
+sleep 30
+
+步骤2：安装MySQL客户端（如需要）
+--------------------
+sudo apt-get update
+sudo apt-get install mysql-client
+
+步骤3：测试数据库连接
+--------------------
+cd /home/hlw/work/code/profit-decision-system/database
+./test-connection.sh
+
+步骤4：执行DBA任务
+--------------------
+./day1-dba-tasks.sh
+
+步骤5：验证执行结果
+--------------------
+./verify-dba-tasks.sh
+
+七、预期结果
+=====================================
+
+执行成功后应看到：
+✓ 数据库备份已保存到 backups/ 目录
+✓ 19张表创建成功
+✓ 初始化数据导入完成（组织6条、用户2条等）
+✓ 60+个性能索引创建完成
+✓ 所有验证检查通过
+
+数据库状态：
+- 表数量：19张
+- 索引数量：60+个
+- 初始数据：已导入
+- 备份文件：已创建
+
+八、故障排查
+=====================================
+
+问题1：Docker权限不足
+解决：sudo usermod -aG docker $USER
+     然后重新登录
+
+问题2：MySQL容器未启动
+解决：docker compose up -d profit-mysql
+     docker logs profit-mysql
+
+问题3：端口冲突
+解决：检查3306端口是否被占用
+     netstat -tlnp | grep 3306
+
+问题4：连接超时
+解决：等待MySQL完全启动（30秒）
+     检查容器日志
+
+九、性能优化说明
+=====================================
+
+索引设计原则：
+1. 高频查询字段优先建索引
+2. 复合索引覆盖常见查询组合
+3. 避免过度索引影响写入性能
+4. 考虑索引选择性和基数
+
+关键优化点：
+- fact_event表：利润计算、现金流、分摊查询
+- voucher表：期间查询、审计追踪
+- audit_log表：实体查询、时间范围、用户追踪
+- receivable表：状态管理、账龄分析
+- profit_snapshot表：报表查询、时间序列
+
+十、下一步工作
+=====================================
+
+DBA任务完成后：
+1. 启动后端服务（jeecg-boot）
+2. 运行API接口测试
+3. 验证数据库连接池配置
+4. 执行性能测试
+5. 配置数据库监控
+
+后续优化：
+1. 根据实际查询情况调整索引
+2. 配置慢查询日志
+3. 设置定期备份任务
+4. 配置主从复制（如需要）
+5. 优化数据库参数
+
+十一、联系信息
+=====================================
+
+技术支持：
+- 查看详细文档：DAY1-DBA-TASKS-README.md
+- 快速启动：QUICKSTART.txt
+- 问题反馈：项目Issue或技术负责人
+
+文件位置：
+/home/hlw/work/code/profit-decision-system/database/
+
+执行命令：
+cd /home/hlw/work/code/profit-decision-system/database
+./day1-dba-tasks.sh
+
+=====================================
+报告生成时间：2026-05-05 19:37
+DBA：Claude (Hermes Agent)
+状态：已准备就绪，等待用户执行
+=====================================

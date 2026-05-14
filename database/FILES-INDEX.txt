@@ -1,0 +1,103 @@
+[归档说明] 本文件为历史记录，保留旧的 jeecg / Ant Design Vue / Java 17 方案描述。当前主线已切换为 Spring Boot + JDK 21 + Maven + MyBatis-Plus + Lombok + Hutool，前端为 Vue 3 + Vue Router + Element Plus。
+
+=====================================
+Day 1 上午 DBA任务 - 文件清单
+=====================================
+
+database/ 目录结构
+=====================================
+
+执行脚本（可执行）：
+--------------------
+day1-dba-tasks.sh       主执行脚本，自动完成所有DBA任务
+verify-dba-tasks.sh     验证脚本，检查任务执行结果
+test-connection.sh      连接测试脚本，诊断数据库连接问题
+
+SQL文件：
+--------------------
+schema-v4-reviewed.sql  最新表结构定义（19张表）★
+init-data.sql           初始化数据（组织、用户、规则、目标）
+dict-data.sql           字典数据（系统字典项）
+create-indexes.sql      性能优化索引创建脚本
+
+历史版本（参考）：
+--------------------
+schema.sql              初始版本
+schema-v2.sql           第二版
+schema-v3-final.sql     第三版
+schema-v4-reviewed.sql  当前版本（四方评审版）★
+
+文档文件：
+--------------------
+DAY1-DBA-TASKS-README.md    详细执行文档（推荐阅读）
+QUICKSTART.txt              快速启动指南（3分钟上手）
+DAY1-COMPLETION-REPORT.txt  任务完成报告
+FILES-INDEX.txt             本文件
+
+备份目录（执行后生成）：
+--------------------
+backups/                    数据库备份文件存放目录
+  backup_YYYYMMDD_HHMMSS.sql
+
+使用指南
+=====================================
+
+新手用户：
+1. 阅读 QUICKSTART.txt
+2. 执行 ./test-connection.sh
+3. 执行 ./day1-dba-tasks.sh
+4. 执行 ./verify-dba-tasks.sh
+
+高级用户：
+1. 阅读 DAY1-DBA-TASKS-README.md
+2. 根据需要手动执行各个SQL文件
+3. 自定义索引优化策略
+
+故障排查：
+1. 执行 ./test-connection.sh 诊断问题
+2. 查看 DAY1-DBA-TASKS-README.md 故障排查章节
+3. 检查 Docker 容器日志
+
+文件大小参考
+=====================================
+day1-dba-tasks.sh           7.3K
+verify-dba-tasks.sh         7.6K
+test-connection.sh          4.3K
+create-indexes.sql          6.9K
+schema-v4-reviewed.sql      18K  ★ 最重要
+init-data.sql               1.1K
+dict-data.sql               8.7K
+DAY1-DBA-TASKS-README.md    7.2K
+QUICKSTART.txt              1.9K
+DAY1-COMPLETION-REPORT.txt  6.7K
+
+总计：约80K
+
+重要提示
+=====================================
+★ schema-v4-reviewed.sql 是最新的表结构定义
+★ 执行前请确保MySQL容器正在运行
+★ 所有脚本都有执行权限（chmod +x）
+★ 备份文件会自动保存到 backups/ 目录
+
+快速命令
+=====================================
+# 测试连接
+./test-connection.sh
+
+# 执行所有任务
+./day1-dba-tasks.sh
+
+# 验证结果
+./verify-dba-tasks.sh
+
+# 查看备份
+ls -lh backups/
+
+# 连接数据库
+mysql -h127.0.0.1 -P3306 -uroot -p123456 jeecg-boot
+
+=====================================
+更新时间：2026-05-05 19:38
+维护者：DBA Team
+=====================================
