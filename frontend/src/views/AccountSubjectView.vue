@@ -89,22 +89,35 @@ const dialogTitle = computed(() => {
 
 const isCodeReadonly = computed(() => dialog.mode === 'edit')
 
+/** 接口或表格组件可能得到 null/非数组的 children，统一为数组避免内部 .map 报错 */
+function normalizeSubjectTree(
+  nodes: AccountSubjectTreeNode[] | null | undefined
+): AccountSubjectTreeNode[] {
+  if (nodes == null || !Array.isArray(nodes)) return []
+  return nodes.map((n) => ({
+    ...n,
+    children: normalizeSubjectTree(n.children ?? [])
+  }))
+}
+
 // 树形选择器数据：编辑时排除自身及子孙节点
 const parentTreeData = computed(() => {
   if (dialog.mode !== 'edit' || !dialog.editingId) return treeData.value
   return filterTree(treeData.value, dialog.editingId)
 })
 
-function filterTree(nodes: AccountSubjectTreeNode[], excludeId: number): AccountSubjectTreeNode[] {
+function filterTree(nodes: AccountSubjectTreeNode[] | null | undefined, excludeId: number): AccountSubjectTreeNode[] {
+  if (nodes == null || !Array.isArray(nodes)) return []
   return nodes
     .filter((n) => n.id !== excludeId)
     .map((n) => ({
       ...n,
-      children: filterTree(n.children, excludeId)
+      children: filterTree(n.children ?? [], excludeId)
     }))
 }
 
-function collectRootIds(nodes: AccountSubjectTreeNode[]): number[] {
+function collectRootIds(nodes: AccountSubjectTreeNode[] | null | undefined): number[] {
+  if (nodes == null || !Array.isArray(nodes)) return []
   return nodes.map((n) => n.id)
 }
 
@@ -113,7 +126,8 @@ async function fetchTree(kw?: string) {
   status.value = 'loading'
   try {
     const res = await fetchSubjectTree(kw)
-    treeData.value = res.data.data
+    const raw = res.data.data
+    treeData.value = normalizeSubjectTree(Array.isArray(raw) ? raw : [])
     expandedKeys.value = kw ? collectAllIds(treeData.value) : collectRootIds(treeData.value)
     status.value = 'ready'
   } catch (e: any) {
@@ -122,12 +136,13 @@ async function fetchTree(kw?: string) {
   }
 }
 
-function collectAllIds(nodes: AccountSubjectTreeNode[]): number[] {
+function collectAllIds(nodes: AccountSubjectTreeNode[] | null | undefined): number[] {
   const ids: number[] = []
-  const walk = (list: AccountSubjectTreeNode[]) => {
+  const walk = (list: AccountSubjectTreeNode[] | null | undefined) => {
+    if (list == null || !Array.isArray(list)) return
     for (const n of list) {
       ids.push(n.id)
-      if (n.children?.length) walk(n.children)
+      walk(n.children ?? [])
     }
   }
   walk(nodes)

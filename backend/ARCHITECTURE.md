@@ -42,6 +42,12 @@ src/main/java/com/profit/
 - DTO、VO、Domain Model 分离，避免接口模型和持久化模型混用。
 - 公共返回值、异常码、工具方法统一放在 `common`。
 
+## 鉴权与会话
+
+- 登录签发不透明 Token；默认 **`app.auth.session-store=redis`**，会话 JSON 存 Redis，键前缀 `profit:auth:session:`，TTL 与 `app.auth.token-ttl-minutes` 一致（见 `RedisTokenStore`、`AuthSessionConfiguration`）。
+- 无 Redis 或单测可设 **`session-store: memory`**（进程内 `ConcurrentHashMap`）。
+- 登录成功/失败、登出写 **SLF4J 审计日志**（`AuthService`）。
+
 ## 关键依赖
 
 ```xml
@@ -85,5 +91,6 @@ mvn clean package -DskipTests
 ## 数据库约定
 
 - 本地开发使用 `docker-compose.yml` 启动 `profit-mysql`。
+- 使用 **Redis 会话**（路线 A）时需启动 `profit-redis`；否则将 `app.auth.session-store` 设为 `memory`。
 - 后端默认连接 Docker MySQL，不再使用内存数据替代真实模块。
 - 领域模型与数据库表结构必须同步设计后再编码。

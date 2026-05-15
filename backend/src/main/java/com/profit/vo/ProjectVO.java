@@ -24,6 +24,12 @@ public class ProjectVO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private BigDecimal totalIncome;
+    private BigDecimal totalCost;
+    private BigDecimal totalProfit;
+    private BigDecimal profitRate;
+    private BigDecimal budgetExecutionRate;
+
     public static ProjectVO from(Project p) {
         ProjectVO vo = new ProjectVO();
         vo.setId(p.getId());

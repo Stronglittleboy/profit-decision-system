@@ -9,8 +9,10 @@ import {
   deleteProject,
   transitionProject,
   toggleProjectEnabled,
+  fetchProjectPnl,
   type ProjectVO,
   type ProjectForm,
+  type ProjectPnlVO,
 } from '@/api/project'
 
 const loading = ref(false)
@@ -203,6 +205,19 @@ function formatDateRange(start: string | null, end: string | null) {
   return '-'
 }
 
+// --- 盈亏明细 ---
+const pnlVisible = ref(false)
+const pnlLoading = ref(false)
+const pnlData = ref<ProjectPnlVO | null>(null)
+async function openPnl(row: ProjectVO) {
+  pnlVisible.value = true
+  pnlLoading.value = true
+  try {
+    const res = await fetchProjectPnl(row.id)
+    pnlData.value = res.data.data ?? null
+  } finally { pnlLoading.value = false }
+}
+
 onMounted(() => loadList())
 </script>
 
@@ -283,6 +298,16 @@ onMounted(() => loadList())
             {{ formatDateRange(row.startDate, row.endDate) }}
           </template>
         </el-table-column>
+        <el-table-column label="利润" width="140" align="right">
+          <template #default="{ row }">
+            <span :style="{ color: row.totalProfit >= 0 ? '#67c23a' : '#f56c6c' }">¥{{ formatMoney(row.totalProfit ?? 0) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="预算执行" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag :type="(row.budgetExecutionRate ?? 0) > 100 ? 'danger' : (row.budgetExecutionRate ?? 0) > 80 ? 'warning' : 'success'" size="small">{{ row.budgetExecutionRate ?? 0 }}%</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="manager" label="经理" width="100">
           <template #default="{ row }">{{ row.manager || '-' }}</template>
         </el-table-column>
@@ -297,6 +322,7 @@ onMounted(() => loadList())
         </el-table-column>
         <el-table-column label="操作" width="220" align="center" fixed="right">
           <template #default="{ row }">
+            <el-button link type="primary" size="small" @click="openPnl(row)">盈亏</el-button>
             <el-button link type="primary" size="small" @click="openEdit(row)">编辑</el-button>
             <el-button
               v-for="action in getAvailableActions(row.status)"
@@ -383,6 +409,40 @@ onMounted(() => loadList())
         <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 盈亏明细弹窗 -->
+    <el-dialog v-model="pnlVisible" title="项目盈亏分析" width="560px" destroy-on-close>
+      <div v-loading="pnlLoading">
+        <template v-if="pnlData">
+          <h3 style="margin:0 0 16px">{{ pnlData.projectName }}</h3>
+          <div class="pnl-grid">
+            <div class="pnl-item"><span>收入</span><strong style="color:#67c23a">¥{{ formatMoney(pnlData.totalIncome) }}</strong></div>
+            <div class="pnl-item"><span>成本</span><strong style="color:#f56c6c">¥{{ formatMoney(pnlData.totalCost) }}</strong></div>
+            <div class="pnl-item"><span>利润</span><strong :style="{color: pnlData.totalProfit>=0?'#67c23a':'#f56c6c'}">¥{{ formatMoney(pnlData.totalProfit) }}</strong></div>
+            <div class="pnl-item"><span>利润率</span><strong>{{ pnlData.profitRate }}%</strong></div>
+            <div class="pnl-item"><span>预算</span><strong>¥{{ formatMoney(pnlData.budget ?? 0) }}</strong></div>
+            <div class="pnl-item"><span>预算执行率</span><el-tag :type="pnlData.budgetExecutionRate > 100 ? 'danger' : 'success'" size="small">{{ pnlData.budgetExecutionRate }}%</el-tag></div>
+          </div>
+          <el-divider />
+          <h4 style="margin:0 0 12px">成本结构</h4>
+          <el-table v-if="pnlData.costBreakdown?.length" :data="pnlData.costBreakdown" size="small" stripe>
+            <el-table-column prop="categoryName" label="类别" />
+            <el-table-column label="金额" align="right"><template #default="{row}">¥{{ formatMoney(row.amount) }}</template></el-table-column>
+          </el-table>
+          <el-empty v-else description="暂无成本记录" :image-size="50" />
+          <el-collapse class="meeting-focus">
+            <el-collapse-item title="本会讨论焦点（模板）" name="focus">
+              <ul class="focus-list">
+                <li><strong>目标偏差：</strong>本期收入/利润相对计划偏差的主要原因？</li>
+                <li><strong>费用结构：</strong>哪类成本上升最快、是否与产出匹配？</li>
+                <li><strong>感谢与浪费：</strong>哪些投入证明有效，哪些可削减？</li>
+                <li><strong>下月挑战：</strong>最需要攻坚的一项与客户/资源动作？</li>
+              </ul>
+            </el-collapse-item>
+          </el-collapse>
+        </template>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -432,5 +492,17 @@ onMounted(() => loadList())
 .summary-value {
   font-size: 24px;
   font-weight: 700;
+}
+.pnl-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.pnl-item { display: flex; flex-direction: column; gap: 4px; }
+.pnl-item span { font-size: 12px; color: var(--muted); }
+.meeting-focus {
+  margin-top: 16px;
+}
+.focus-list {
+  margin: 0;
+  padding-left: 1.2em;
+  line-height: 1.75;
+  font-size: 13px;
 }
 </style>

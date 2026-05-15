@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { House, SwitchButton, Notebook, User, Coin, FolderOpened, Document, Download, Upload } from '@element-plus/icons-vue';
+import {
+  House,
+  SwitchButton,
+  Notebook,
+  User,
+  Coin,
+  FolderOpened,
+  Document,
+  Download,
+  Upload,
+  DataAnalysis,
+  TrendCharts,
+  QuestionFilled,
+  Calendar,
+} from '@element-plus/icons-vue';
 import { authState, clearSession } from '@/stores/auth';
 import { logout } from '@/api/auth';
 
@@ -31,38 +45,72 @@ async function handleLogout() {
       </div>
 
       <el-menu router class="menu" :default-active="$route.path">
-        <el-menu-item index="/">
-          <el-icon><House /></el-icon>
-          <span>首页</span>
-        </el-menu-item>
-        <el-menu-item index="/account-subject">
-          <el-icon><Notebook /></el-icon>
-          <span>会计科目</span>
-        </el-menu-item>
-        <el-menu-item index="/counterparty">
-          <el-icon><User /></el-icon>
-          <span>往来方</span>
-        </el-menu-item>
-        <el-menu-item index="/fact-event">
-          <el-icon><Coin /></el-icon>
-          <span>收支记录</span>
-        </el-menu-item>
-        <el-menu-item index="/project">
-          <el-icon><FolderOpened /></el-icon>
-          <span>项目管理</span>
-        </el-menu-item>
-        <el-menu-item index="/contract">
-          <el-icon><Document /></el-icon>
-          <span>合同管理</span>
-        </el-menu-item>
-        <el-menu-item index="/receivable">
-          <el-icon><Download /></el-icon>
-          <span>应收账款</span>
-        </el-menu-item>
-        <el-menu-item index="/payable">
-          <el-icon><Upload /></el-icon>
-          <span>应付账款</span>
-        </el-menu-item>
+        <el-sub-menu index="grp-meeting">
+          <template #title><span class="submenu-title">经营例会</span></template>
+          <el-menu-item index="/">
+            <el-icon><House /></el-icon>
+            <span>首页</span>
+          </el-menu-item>
+          <el-menu-item index="/meeting">
+            <el-icon><Calendar /></el-icon>
+            <span>会议清单</span>
+          </el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="grp-project">
+          <template #title><span class="submenu-title">项目经营体</span></template>
+          <el-menu-item index="/project">
+            <el-icon><FolderOpened /></el-icon>
+            <span>项目管理</span>
+          </el-menu-item>
+          <el-menu-item index="/contract">
+            <el-icon><Document /></el-icon>
+            <span>合同管理</span>
+          </el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="grp-customer">
+          <template #title><span class="submenu-title">客户与往来</span></template>
+          <el-menu-item index="/counterparty">
+            <el-icon><User /></el-icon>
+            <span>往来方</span>
+          </el-menu-item>
+          <el-menu-item index="/customer-analysis">
+            <el-icon><TrendCharts /></el-icon>
+            <span>客户分析</span>
+          </el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="grp-funds">
+          <template #title><span class="submenu-title">资金与预算</span></template>
+          <el-menu-item index="/fact-event">
+            <el-icon><Coin /></el-icon>
+            <span>收支记录</span>
+          </el-menu-item>
+          <el-menu-item index="/receivable">
+            <el-icon><Download /></el-icon>
+            <span>应收账款</span>
+          </el-menu-item>
+          <el-menu-item index="/payable">
+            <el-icon><Upload /></el-icon>
+            <span>应付账款</span>
+          </el-menu-item>
+          <el-menu-item index="/budget">
+            <el-icon><DataAnalysis /></el-icon>
+            <span>预算管理</span>
+          </el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="grp-master">
+          <template #title><span class="submenu-title">主数据</span></template>
+          <el-menu-item index="/account-subject">
+            <el-icon><Notebook /></el-icon>
+            <span>会计科目</span>
+          </el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="grp-help">
+          <template #title><span class="submenu-title">系统与帮助</span></template>
+          <el-menu-item index="/help">
+            <el-icon><QuestionFilled /></el-icon>
+            <span>使用说明</span>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
 
@@ -127,6 +175,11 @@ async function handleLogout() {
 .menu {
   border-right: none;
   background: transparent;
+}
+
+.submenu-title {
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .topbar {

@@ -244,6 +244,77 @@ STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
   -d '{"type":"","amount":0}')
 assert_status "POST /api/fact-event (空参数→400)" "400" "$STATUS"
 
+# ─── 10. 预算管理 ───
+echo "--- 预算管理 ---"
+PERIOD=$(date +%Y-%m)
+
+RESP=$(curl -s -w '\n%{http_code}' -X POST "$BASE/api/budget" \
+  -H "$AUTH" -H 'Content-Type: application/json' \
+  -d "{\"period\":\"$PERIOD\",\"category\":\"income\",\"plannedAmount\":100000,\"remark\":\"测试预算\"}")
+STATUS=$(echo "$RESP" | tail -1)
+assert_status "POST /api/budget (创建)" "200" "$STATUS"
+BID=$(echo "$RESP" | head -1 | jq -r '.data.id')
+
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/budget?period=$PERIOD" -H "$AUTH")
+assert_status "GET /api/budget (列表)" "200" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/budget/$BID" -H "$AUTH")
+assert_status "GET /api/budget/{id} (详情)" "200" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/budget/$BID/approve" -H "$AUTH")
+assert_status "POST /api/budget/{id}/approve (批准)" "200" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/budget/refresh" \
+  -H "$AUTH" -H 'Content-Type: application/json' \
+  -d "{\"period\":\"$PERIOD\"}")
+assert_status "POST /api/budget/refresh (刷新实际)" "200" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE/api/budget/$BID" -H "$AUTH")
+assert_status "DELETE /api/budget/{id} (删除)" "200" "$STATUS"
+
+# ─── 11. 仪表盘真实数据 ───
+echo "--- 仪表盘 ---"
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/dashboard/summary" -H "$AUTH")
+assert_status "GET /api/dashboard/summary (真实聚合)" "200" "$STATUS"
+
+# ─── 12. 项目盈亏 ───
+echo "--- 项目盈亏 ---"
+if [ -n "$PID" ] && [ "$PID" != "null" ]; then
+  STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/project/$PID/pnl" -H "$AUTH")
+  assert_status "GET /api/project/{id}/pnl (盈亏)" "200" "$STATUS"
+else
+  echo "  跳过: 项目ID不存在"
+fi
+
+# ─── 13. 客户贡献分析 ───
+echo "--- 客户分析 ---"
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/analysis/customer-rank" -H "$AUTH")
+assert_status "GET /api/analysis/customer-rank" "200" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/analysis/customer-rank?startDate=2026-01-01&endDate=2026-12-31" -H "$AUTH")
+assert_status "GET /api/analysis/customer-rank (带日期)" "200" "$STATUS"
+
+echo "--- 客户排名非法日期（E0） ---"
+curl -s -H "$AUTH" "$BASE/api/analysis/customer-rank?startDate=2024-13-40" -o /tmp/rank_bad.json
+BAD_CODE=$(python3 -c "import json; print(json.load(open('/tmp/rank_bad.json'))['code'])" 2>/dev/null || echo "")
+if [ "$BAD_CODE" = "400" ]; then
+  green "GET /api/analysis/customer-rank 非法日期 → body.code=400"
+  PASS=$((PASS + 1))
+else
+  red "GET /api/analysis/customer-rank 非法日期 — 期望 body.code=400，实际 ${BAD_CODE:-解析失败}"
+  FAIL=$((FAIL + 1))
+fi
+
+curl -s -H "$AUTH" "$BASE/api/analysis/customer-rank?startDate=2024-01-02'+OR+1=1--" -o /tmp/rank_inj.json
+INJ_CODE=$(python3 -c "import json; print(json.load(open('/tmp/rank_inj.json'))['code'])" 2>/dev/null || echo "")
+if [ "$INJ_CODE" = "400" ]; then
+  green "GET /api/analysis/customer-rank 非 yyyy-MM-dd → body.code=400（防注入）"
+  PASS=$((PASS + 1))
+else
+  red "GET /api/analysis/customer-rank 注入样例 — 期望 body.code=400，实际 ${INJ_CODE:-解析失败}"
+  FAIL=$((FAIL + 1))
+fi
+
 # ─── 汇总 ───
 echo ""
 echo "==============================="

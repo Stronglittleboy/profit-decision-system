@@ -20,8 +20,8 @@ public class AuthController {
     private final AuthTokenResolver tokenResolver;
 
     @PostMapping("/login")
-    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ApiResponse.ok("登录成功", authService.login(request));
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        return ApiResponse.ok("登录成功", authService.login(request, httpRequest));
     }
 
     @GetMapping("/me")

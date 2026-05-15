@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, RefreshRight } from '@element-plus/icons-vue'
 import {
@@ -10,7 +11,9 @@ import {
 } from '@/api/receivable'
 import { fetchCounterpartyList, type CounterpartyVO } from '@/api/counterparty'
 import { fetchContractList, type ContractVO } from '@/api/contract'
+import RevenueCostDisclaimer from '@/components/RevenueCostDisclaimer.vue'
 
+const route = useRoute()
 const loading = ref(false)
 const list = ref<ReceivableVO[]>([])
 const keyword = ref('')
@@ -108,7 +111,12 @@ function agingTag(days: number) { return days > 90 ? 'danger' : days > 30 ? 'war
 function statusTag(s: string) { return s === 'paid' ? 'success' : s === 'overdue' ? 'danger' : s === 'partial' ? '' : 'warning' }
 function fmt(v: number) { return v?.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '0.00' }
 
-onMounted(() => { loadOptions(); loadList() })
+onMounted(() => {
+  const st = typeof route.query.status === 'string' ? route.query.status : ''
+  if (st) statusFilter.value = st
+  loadOptions()
+  loadList()
+})
 </script>
 
 <template>
@@ -120,6 +128,7 @@ onMounted(() => { loadOptions(); loadList() })
         <el-button type="primary" :icon="Plus" @click="openCreate">新增应收</el-button>
       </div>
     </div>
+    <RevenueCostDisclaimer />
     <el-card shadow="never" class="filter-card">
       <el-form :inline="true">
         <el-form-item label="搜索"><el-input v-model="keyword" placeholder="单据编号" clearable style="width:180px" @keyup.enter="loadList" /></el-form-item>

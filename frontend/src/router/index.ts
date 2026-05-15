@@ -8,6 +8,10 @@ import ProjectView from '@/views/ProjectView.vue';
 import ContractView from '@/views/ContractView.vue';
 import ReceivableView from '@/views/ReceivableView.vue';
 import PayableView from '@/views/PayableView.vue';
+import BudgetView from '@/views/BudgetView.vue';
+import CustomerAnalysisView from '@/views/CustomerAnalysisView.vue';
+import HelpView from '@/views/HelpView.vue';
+import MeetingView from '@/views/MeetingView.vue';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { isAuthenticated } from '@/stores/auth';
 
@@ -64,6 +68,26 @@ const router = createRouter({
           path: 'payable',
           name: 'payable',
           component: PayableView
+        },
+        {
+          path: 'budget',
+          name: 'budget',
+          component: BudgetView
+        },
+        {
+          path: 'customer-analysis',
+          name: 'customerAnalysis',
+          component: CustomerAnalysisView
+        },
+        {
+          path: 'help',
+          name: 'help',
+          component: HelpView
+        },
+        {
+          path: 'meeting',
+          name: 'meeting',
+          component: MeetingView
         }
       ]
     }

@@ -15,6 +15,29 @@ export interface ProjectVO {
   enabled: boolean
   createdAt: string
   updatedAt: string
+  totalIncome: number
+  totalCost: number
+  totalProfit: number
+  profitRate: number
+  budgetExecutionRate: number
+}
+
+export interface CostBreakdown {
+  category: string
+  categoryName: string
+  amount: number
+}
+
+export interface ProjectPnlVO {
+  projectId: number
+  projectName: string
+  totalIncome: number
+  totalCost: number
+  totalProfit: number
+  profitRate: number
+  budget: number
+  budgetExecutionRate: number
+  costBreakdown: CostBreakdown[]
 }
 
 export interface ProjectForm {
@@ -56,4 +79,8 @@ export function transitionProject(id: number, action: string) {
 
 export function toggleProjectEnabled(id: number, enabled: boolean) {
   return http.patch<ApiResponse<void>>(`/project/${id}/status`, { enabled })
+}
+
+export function fetchProjectPnl(id: number) {
+  return http.get<ApiResponse<ProjectPnlVO>>(`/project/${id}/pnl`)
 }

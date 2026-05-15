@@ -1,5 +1,9 @@
 # 产品设计
 
+> **版本说明**：本文为 **V1 基线**（Goal / Status / Action 与 Agent 边界）。**V2 总册（2.0）**见 [产品设计 V2](./product-design-v2.md)；**V2 可开发规格（2.0）**见 [产品规格 V2](./product-spec-v2.md)。审查见 [加权多视角产品审查](./product-multiview-review.md)。
+
+---
+
 ## 产品定位
 
 **底层：** Fact → Attribution → Metrics → Decision  

@@ -10,6 +10,19 @@ public class AuthProperties {
     private String displayName = "管理员";
     private long tokenTtlMinutes = 720;
 
+    /**
+     * redis：会话存 Redis（默认）。memory：进程内 Map，用于测试等。
+     */
+    private String sessionStore = "redis";
+
+    public String getSessionStore() {
+        return sessionStore;
+    }
+
+    public void setSessionStore(String sessionStore) {
+        this.sessionStore = sessionStore;
+    }
+
     public String getUsername() {
         return username;
     }

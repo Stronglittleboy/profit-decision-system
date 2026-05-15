@@ -13,3 +13,7 @@ spring:
 logging:
   level:
     root: info
+
+app:
+  auth:
+    session-store: redis

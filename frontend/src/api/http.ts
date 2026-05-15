@@ -15,14 +15,26 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
+function redirectToLoginIfNeeded() {
+  clearSession();
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+}
+
 http.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 历史行为：部分业务异常以 HTTP 200 + body.code=401 返回，axios 不会进错误分支
+    const payload = response.data as { code?: number; message?: string } | undefined;
+    if (payload && typeof payload === 'object' && payload.code === 401) {
+      redirectToLoginIfNeeded();
+      return Promise.reject(new Error(payload.message || '未登录或登录已过期'));
+    }
+    return response;
+  },
   (error) => {
     if (error?.response?.status === 401) {
-      clearSession();
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      redirectToLoginIfNeeded();
     }
     return Promise.reject(error);
   }

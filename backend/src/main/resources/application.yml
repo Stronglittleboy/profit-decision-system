@@ -32,3 +32,4 @@ app:
     password: 123456
     display-name: 管理员
     token-ttl-minutes: 720
+    session-store: redis

@@ -1,251 +1,414 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import { fetchHealth, type HealthPayload } from '@/api/health';
-import { fetchDashboardSummary, type DashboardSummary } from '@/api/dashboard';
+import { onMounted, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { fetchHealth, type HealthPayload } from '@/api/health'
+import { fetchDashboardSummary, type DashboardSummary } from '@/api/dashboard'
+import { VALUE_PROPOSITION } from '@/constants/productCopy'
 
-const loading = ref(true);
-const health = ref<HealthPayload | null>(null);
-const dashboard = ref<DashboardSummary | null>(null);
+const router = useRouter()
+const loading = ref(true)
+const health = ref<HealthPayload | null>(null)
+const data = ref<DashboardSummary | null>(null)
 
-const cards = [
-  {
-    title: '后端',
-    value: 'Spring Boot + JDK 21',
-    note: 'Maven / MyBatis-Plus / Lombok / Hutool'
-  },
-  {
-    title: '前端',
-    value: 'Vue 3 + Router + Element Plus',
-    note: 'Vite 构建，模块化页面结构'
-  },
-  {
-    title: '数据',
-    value: 'MySQL + Redis',
-    note: '统一本地开发与生产配置'
+const meetingCollapse = ref<string[]>([])
+
+const statusText = computed(() => health.value?.status ?? '未连接')
+
+function fmt(v: number | undefined) {
+  return (v ?? 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function trendMax(trends: DashboardSummary['monthTrends']) {
+  if (!trends?.length) return 1
+  return Math.max(...trends.map((t) => Math.max(t.income, t.cost)), 1)
+}
+
+function barH(val: number, max: number) {
+  return Math.max(4, (val / max) * 100) + '%'
+}
+
+function monthRange(): { start: string; end: string } {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = now.getMonth()
+  const mm = String(m + 1).padStart(2, '0')
+  const last = new Date(y, m + 1, 0).getDate()
+  return {
+    start: `${y}-${mm}-01`,
+    end: `${y}-${mm}-${String(last).padStart(2, '0')}`,
   }
-];
+}
 
-const displayCards = computed(() =>
-  dashboard.value?.metrics.map((item) => ({
-    title: item.label,
-    value: item.value,
-    note: item.note
-  })) ?? cards
-);
+function goFactIncomeMonth() {
+  const { start, end } = monthRange()
+  void router.push({ path: '/fact-event', query: { type: 'income', startDate: start, endDate: end } })
+}
 
-const pipelineSteps = computed(
-  () =>
-    dashboard.value?.nextSteps ?? [
-      '建立后端基础工程和统一返回值。',
-      '建立前端基础工程和路由骨架。',
-      '补充公共配置、异常处理、日志和联调接口。',
-      '再进入业务模块开发。'
-    ]
-);
+function goFactCostMonth() {
+  const { start, end } = monthRange()
+  void router.push({ path: '/fact-event', query: { type: 'cost', startDate: start, endDate: end } })
+}
 
-const statusText = computed(() => health.value?.status ?? '未连接');
+function goReceivable() {
+  void router.push({ path: '/receivable' })
+}
+
+function goReceivableOverdue() {
+  void router.push({ path: '/receivable', query: { status: 'overdue' } })
+}
+
+function goCounterparty(name: string) {
+  void router.push({ path: '/counterparty', query: { keyword: name } })
+}
 
 onMounted(async () => {
   try {
-    const [healthResponse, summaryResponse] = await Promise.all([
-      fetchHealth(),
-      fetchDashboardSummary()
-    ]);
-    health.value = healthResponse.data.data;
-    dashboard.value = summaryResponse.data.data;
+    const [hr, dr] = await Promise.all([fetchHealth(), fetchDashboardSummary()])
+    health.value = hr.data.data
+    data.value = dr.data.data
   } catch {
-    ElMessage.warning('后端未启动，当前仅展示前端骨架');
+    ElMessage.warning('后端未启动，无法加载经营数据')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-});
+})
 </script>
 
 <template>
-  <div class="page-shell" v-loading="loading">
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Profit Decision System</p>
-        <h1>新的技术方案已经落地为可启动工程骨架。</h1>
-        <p class="lead">
-          后端使用 Spring Boot + JDK 21 + Maven，前端使用 Vue 3 + Vue Router + Element Plus。
-          这是后续业务模块开发的基础底座。
-        </p>
+  <div class="page" v-loading="loading">
+    <div class="page-header">
+      <div>
+        <h2>经营总览</h2>
+        <p class="sub">基于事实数据的实时经营看板</p>
+        <p class="value-line">{{ VALUE_PROPOSITION }}</p>
+      </div>
+      <div class="status-chip">
+        <span class="dot" :class="{ alive: statusText === 'UP' }"></span>
+        <span>{{ statusText }}</span>
+      </div>
+    </div>
+
+    <template v-if="data">
+      <div class="metric-grid">
+        <el-card shadow="never" class="mc clickable" @click="goFactIncomeMonth">
+          <div class="mc-label">累计收入</div>
+          <div class="mc-value income-c">¥{{ fmt(data.totalIncome) }}</div>
+          <div class="mc-sub">本月 ¥{{ fmt(data.monthIncome) }} · 点击看本月收入明细</div>
+        </el-card>
+        <el-card shadow="never" class="mc clickable" @click="goFactCostMonth">
+          <div class="mc-label">累计成本</div>
+          <div class="mc-value cost-c">¥{{ fmt(data.totalCost) }}</div>
+          <div class="mc-sub">本月 ¥{{ fmt(data.monthCost) }} · 点击看本月成本明细</div>
+        </el-card>
+        <el-card shadow="never" class="mc">
+          <div class="mc-label">累计利润</div>
+          <div class="mc-value" :class="data.totalProfit >= 0 ? 'income-c' : 'cost-c'">¥{{ fmt(data.totalProfit) }}</div>
+          <div class="mc-sub">利润率 {{ data.profitRate }}%</div>
+        </el-card>
+        <el-card shadow="never" class="mc">
+          <div class="mc-label">本月利润</div>
+          <div class="mc-value" :class="data.monthProfit >= 0 ? 'income-c' : 'cost-c'">¥{{ fmt(data.monthProfit) }}</div>
+        </el-card>
       </div>
 
-      <div class="hero-status">
-        <div class="status-chip">
-          <span class="dot" :class="{ alive: statusText === 'UP' }"></span>
-          <span>{{ statusText }}</span>
-        </div>
-        <p v-if="health" class="status-meta">{{ health.message }}</p>
-        <p v-else class="status-meta">等待后端启动后自动联通。</p>
-      </div>
-    </section>
-
-    <section class="card-grid">
-      <el-card v-for="card in displayCards" :key="card.title" class="info-card" shadow="never">
-        <p class="card-title">{{ card.title }}</p>
-        <h3>{{ card.value }}</h3>
-        <p class="card-note">{{ card.note }}</p>
-      </el-card>
-    </section>
-
-    <section class="pipeline">
-      <el-card class="pipeline-card" shadow="never">
-        <template #header>
-          <div class="pipeline-header">
-            <span>{{ dashboard?.title ?? '当前实施顺序' }}</span>
-            <el-tag type="info" effect="dark">Init</el-tag>
+      <div class="stat-grid">
+        <el-card shadow="never" class="sc">
+          <div class="sc-row"><span>项目总数</span><strong>{{ data.projectCount }}</strong></div>
+          <div class="sc-row"><span>执行中</span><el-tag type="success" size="small">{{ data.activeProjectCount }}</el-tag></div>
+        </el-card>
+        <el-card shadow="never" class="sc">
+          <div class="sc-row"><span>合同总数</span><strong>{{ data.contractCount }}</strong></div>
+          <div class="sc-row"><span>生效中</span><el-tag type="success" size="small">{{ data.activeContractCount }}</el-tag></div>
+        </el-card>
+        <el-card shadow="never" class="sc clickable" @click="goReceivable">
+          <div class="sc-row"><span>应收待收</span><strong class="warning-c">¥{{ fmt(data.receivableRemaining) }}</strong></div>
+          <div class="sc-row">
+            <span>逾期</span>
+            <el-tag
+              v-if="data.overdueReceivableCount > 0"
+              type="danger"
+              size="small"
+              class="tag-link"
+              @click.stop="goReceivableOverdue"
+            >
+              {{ data.overdueReceivableCount }} 笔
+            </el-tag>
+            <span v-else>0</span>
           </div>
-        </template>
-        <ol>
-          <li v-for="step in pipelineSteps" :key="step">{{ step }}</li>
-        </ol>
-      </el-card>
-    </section>
+          <div class="sc-hint">点击查看应收列表</div>
+        </el-card>
+        <el-card shadow="never" class="sc">
+          <div class="sc-row"><span>应付待付</span><strong class="warning-c">¥{{ fmt(data.payableRemaining) }}</strong></div>
+          <div class="sc-row"><span>逾期</span><el-tag v-if="data.overduePayableCount > 0" type="danger" size="small">{{ data.overduePayableCount }} 笔</el-tag><span v-else>0</span></div>
+        </el-card>
+      </div>
+
+      <el-collapse v-model="meetingCollapse" class="meeting-collapse">
+        <el-collapse-item title="本周经营例会（风险摘要）" name="brief">
+          <ul class="meeting-list">
+            <li>
+              逾期应收：<strong>{{ data.overdueReceivableCount }}</strong> 笔 ·
+              <el-button link type="primary" @click="goReceivableOverdue">打开逾期列表</el-button>
+            </li>
+            <li>
+              应收待收余额：<strong class="warning-c">¥{{ fmt(data.receivableRemaining) }}</strong> ·
+              <el-button link type="primary" @click="goReceivable">打开应收</el-button>
+            </li>
+            <li class="muted">待决策：决策建议功能规划中（后续版本接入决策引擎）</li>
+          </ul>
+        </el-collapse-item>
+      </el-collapse>
+
+      <div class="bottom-grid">
+        <el-card shadow="never" class="trend-card">
+          <template #header><strong>月度收入/成本趋势（近 6 月）</strong></template>
+          <div class="chart-area" v-if="data.monthTrends?.length">
+            <div class="bar-group" v-for="t in data.monthTrends" :key="t.month">
+              <div class="bars">
+                <div class="bar income-bar" :style="{ height: barH(t.income, trendMax(data.monthTrends)) }" :title="`收入 ¥${fmt(t.income)}`"></div>
+                <div class="bar cost-bar" :style="{ height: barH(t.cost, trendMax(data.monthTrends)) }" :title="`成本 ¥${fmt(t.cost)}`"></div>
+              </div>
+              <div class="bar-label">{{ t.month.slice(5) }}月</div>
+            </div>
+          </div>
+          <el-empty v-else description="暂无数据" :image-size="60" />
+          <div class="legend"><span class="lg income-lg">收入</span><span class="lg cost-lg">成本</span></div>
+        </el-card>
+
+        <el-card shadow="never" class="customer-card">
+          <template #header><strong>客户贡献 TOP 5</strong></template>
+          <el-table :data="data.topCustomers" size="small" stripe v-if="data.topCustomers?.length">
+            <el-table-column prop="counterpartyName" label="客户">
+              <template #default="{ row }">
+                <el-button v-if="row.counterpartyName" link type="primary" @click="goCounterparty(row.counterpartyName)">
+                  {{ row.counterpartyName }}
+                </el-button>
+                <span v-else>(未关联)</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="收入" align="right">
+              <template #default="{ row }"><span class="income-c">¥{{ fmt(row.income) }}</span></template>
+            </el-table-column>
+            <el-table-column label="成本" align="right">
+              <template #default="{ row }"><span class="cost-c">¥{{ fmt(row.cost) }}</span></template>
+            </el-table-column>
+            <el-table-column label="利润" align="right">
+              <template #default="{ row }">
+                <strong :class="row.profit >= 0 ? 'income-c' : 'cost-c'">¥{{ fmt(row.profit) }}</strong>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-else description="暂无数据" :image-size="60" />
+        </el-card>
+      </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
-  gap: 20px;
-  align-items: stretch;
-}
-
-.hero-copy,
-.hero-status,
-.info-card,
-.pipeline-card {
-  border: 1px solid var(--panel-border);
-  background: var(--panel);
-  backdrop-filter: blur(18px);
-  border-radius: 22px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-}
-
-.hero-copy {
-  padding: 34px;
-}
-
-.eyebrow {
-  margin: 0 0 14px;
-  color: var(--accent);
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 0;
-  max-width: 12ch;
-  font-size: clamp(2.2rem, 5vw, 4.8rem);
-  line-height: 0.98;
-}
-
-.lead {
-  margin: 18px 0 0;
-  max-width: 58ch;
-  color: var(--muted);
-  font-size: 1.02rem;
-  line-height: 1.8;
-}
-
-.hero-status {
+.page {
   padding: 28px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 16px;
 }
-
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.page-header h2 {
+  margin: 0 0 4px;
+}
+.sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.value-line {
+  margin: 10px 0 0;
+  max-width: 720px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
 .status-chip {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  width: fit-content;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
-  color: var(--text);
+  font-size: 13px;
 }
-
 .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--warning);
-  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.12);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warning, #e6a23c);
 }
-
 .dot.alive {
-  background: var(--success);
-  box-shadow: 0 0 0 6px rgba(54, 211, 153, 0.12);
+  background: var(--success, #67c23a);
 }
 
-.status-meta,
-.card-note {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.card-grid {
-  margin-top: 20px;
+.metric-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.mc {
+  text-align: center;
+}
+.mc.clickable {
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.mc.clickable:hover {
+  box-shadow: 0 0 0 1px var(--accent, #409eff);
+}
+.mc-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.mc-value {
+  font-size: 26px;
+  font-weight: 700;
+}
+.mc-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.income-c {
+  color: #67c23a;
+}
+.cost-c {
+  color: #f56c6c;
+}
+.warning-c {
+  color: #e6a23c;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.sc {
+  padding: 8px 0;
+}
+.sc.clickable {
+  cursor: pointer;
+}
+.sc.clickable:hover {
+  box-shadow: 0 0 0 1px var(--accent, #409eff);
+}
+.sc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.sc-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.tag-link {
+  cursor: pointer;
+}
+
+.meeting-collapse {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.meeting-list {
+  margin: 0;
+  padding-left: 1.2em;
+  line-height: 1.85;
+}
+.meeting-list .muted {
+  color: var(--muted);
+}
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
   gap: 16px;
 }
 
-.info-card {
-  overflow: hidden;
+.chart-area {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 180px;
+  padding: 10px 0;
 }
-
-.card-title {
-  margin: 0 0 10px;
-  color: var(--accent);
+.bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.bars {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 150px;
+}
+.bar {
+  width: 18px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s;
+}
+.income-bar {
+  background: #67c23a;
+}
+.cost-bar {
+  background: #f56c6c;
+}
+.bar-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 8px;
   font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
-
-.info-card h3 {
-  margin: 0 0 8px;
-  font-size: 1.2rem;
-}
-
-.pipeline {
-  margin-top: 20px;
-}
-
-.pipeline-card {
-  padding: 4px 0;
-}
-
-.pipeline-header {
+.lg {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 4px;
 }
-
-ol {
-  margin: 0;
-  padding-left: 20px;
-  color: var(--muted);
-  line-height: 1.9;
+.lg::before {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+.income-lg::before {
+  background: #67c23a;
+}
+.cost-lg::before {
+  background: #f56c6c;
 }
 
 @media (max-width: 900px) {
-  .hero,
-  .card-grid {
-    grid-template-columns: 1fr;
+  .metric-grid,
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  h1 {
-    max-width: none;
+  .bottom-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

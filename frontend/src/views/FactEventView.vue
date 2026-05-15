@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, RefreshRight } from '@element-plus/icons-vue'
 import {
@@ -14,7 +15,9 @@ import {
 } from '@/api/factEvent'
 import { fetchSubjectTree, type AccountSubjectTreeNode } from '@/api/accountSubject'
 import { fetchCounterpartyList, type CounterpartyVO } from '@/api/counterparty'
+import RevenueCostDisclaimer from '@/components/RevenueCostDisclaimer.vue'
 
+const route = useRoute()
 const loading = ref(false)
 const list = ref<FactEventVO[]>([])
 
@@ -200,7 +203,23 @@ function rowClassName({ row }: { row: FactEventVO }) {
   return row.status === 'reversed' ? 'reversed-row' : ''
 }
 
+function applyRouteQuery() {
+  const q = route.query
+  const t = typeof q.type === 'string' ? q.type : ''
+  const s = typeof q.status === 'string' ? q.status : ''
+  const sd = typeof q.startDate === 'string' ? q.startDate : ''
+  const ed = typeof q.endDate === 'string' ? q.endDate : ''
+  if (t) query.type = t
+  if (s) query.status = s
+  if (sd && ed) {
+    dateRange.value = [sd, ed]
+  } else if (sd || ed) {
+    dateRange.value = [sd || '', ed || '']
+  }
+}
+
 onMounted(() => {
+  applyRouteQuery()
   loadOptions()
   loadList()
 })
@@ -215,6 +234,8 @@ onMounted(() => {
       </div>
       <el-button type="primary" :icon="Plus" @click="openCreate">新增记录</el-button>
     </div>
+
+    <RevenueCostDisclaimer />
 
     <!-- 搜索栏 -->
     <el-card shadow="never" class="filter-card">

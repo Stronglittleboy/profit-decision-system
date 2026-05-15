@@ -3,6 +3,7 @@ package com.profit.controller;
 import com.profit.application.ProjectAppService;
 import com.profit.common.api.ApiResponse;
 import com.profit.dto.ProjectDTO;
+import com.profit.vo.ProjectPnlVO;
 import com.profit.vo.ProjectVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,11 @@ public class ProjectController {
     public ApiResponse<Void> delete(@PathVariable Long id) {
         appService.delete(id);
         return ApiResponse.ok("删除成功", null);
+    }
+
+    @GetMapping("/{id}/pnl")
+    public ApiResponse<ProjectPnlVO> pnl(@PathVariable Long id) {
+        return ApiResponse.ok(appService.getPnl(id));
     }
 
     @PostMapping("/{id}/transition")

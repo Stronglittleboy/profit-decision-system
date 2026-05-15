@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -27,6 +28,7 @@ const creditLevelOptions = [
 ]
 
 // ─── 页面状态 ───
+const route = useRoute()
 const status = ref<'init' | 'loading' | 'ready' | 'error'>('init')
 const errorMessage = ref('')
 const tableData = ref<CounterpartyVO[]>([])
@@ -199,6 +201,8 @@ async function handleToggleStatus(row: CounterpartyVO) {
 }
 
 onMounted(() => {
+  const kw = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  if (kw) keyword.value = kw
   fetchList()
 })
 </script>
